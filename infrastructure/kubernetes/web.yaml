@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: streaming-web
+  labels:
+    app.kubernetes.io/name: streaming-web
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: streaming-web
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: streaming-web
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: web
+          image: ghcr.io/example/streaming-web:0.1.0
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            - name: API_GATEWAY_HOST
+              valueFrom: { configMapKeyRef: { name: streaming-web-config, key: api-gateway-host } }
+            - name: API_GATEWAY_PORT
+              valueFrom: { configMapKeyRef: { name: streaming-web-config, key: api-gateway-port } }
+          readinessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: 500m, memory: 256Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities: { drop: [ALL] }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: streaming-web
+spec:
+  selector:
+    app.kubernetes.io/name: streaming-web
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

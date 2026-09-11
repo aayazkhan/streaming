@@ -1,0 +1,29 @@
+CREATE TABLE profiles (
+    id TEXT NOT NULL PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    language TEXT NOT NULL,
+    subtitle_language TEXT,
+    avatar_key TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+selectProfilesByUser:
+SELECT * FROM profiles WHERE user_id = ? ORDER BY created_at ASC;
+
+selectProfileById:
+SELECT * FROM profiles WHERE id = ? AND user_id = ?;
+
+insertProfile:
+INSERT INTO profiles(id, user_id, name, kind, language, subtitle_language, avatar_key, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+updateProfile:
+UPDATE profiles
+SET name = ?, language = ?, subtitle_language = ?, avatar_key = ?, updated_at = ?
+WHERE id = ? AND user_id = ?;
+
+deleteProfile:
+DELETE FROM profiles WHERE id = ? AND user_id = ?;

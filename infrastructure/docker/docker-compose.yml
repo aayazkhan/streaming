@@ -1,0 +1,140 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: streaming
+      POSTGRES_USER: streaming
+      POSTGRES_PASSWORD: change-me-locally
+    ports:
+      - "5432:5432"
+    volumes:
+      - streaming-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U streaming -d streaming"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api-gateway:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/api-gateway.Dockerfile
+    environment:
+      PORT: 8080
+      DATABASE_URL: jdbc:postgresql://postgres:5432/streaming
+      DATABASE_USER: streaming
+      DATABASE_PASSWORD: change-me-locally
+      JWT_SECRET: local-only-change-this-secret-to-32-chars
+      CORS_ORIGINS: http://localhost:3000,http://localhost:3001
+      ADMIN_BOOTSTRAP_SECRET: local-only-admin-bootstrap-secret
+      CDN_BASE_URL: http://localhost:9000/media
+      PUBLIC_ASSET_BASE_URL: http://localhost:9000/assets
+      MEDIA_STORAGE_ENDPOINT: http://minio:9000
+      MEDIA_STORAGE_PUBLIC_ENDPOINT: http://localhost:9000
+      MEDIA_STORAGE_ACCESS_KEY: minioadmin
+      MEDIA_STORAGE_SECRET_KEY: minioadmin
+      MEDIA_STORAGE_BUCKET: media
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    ports:
+      - "8080:8080"
+
+  web:
+    build:
+      context: ../../apps/webApp
+      dockerfile: Dockerfile
+    environment:
+      API_GATEWAY_HOST: api-gateway
+      API_GATEWAY_PORT: 8080
+    depends_on:
+      api-gateway:
+        condition: service_started
+    ports:
+      - "3000:80"
+
+  admin:
+    build:
+      context: ../../apps/adminApp
+      dockerfile: Dockerfile
+    environment:
+      API_GATEWAY_HOST: api-gateway
+      API_GATEWAY_PORT: 8080
+    depends_on:
+      api-gateway:
+        condition: service_started
+    ports:
+      - "3001:80"
+
+  media-worker:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/media-worker.Dockerfile
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/streaming
+      DATABASE_USER: streaming
+      DATABASE_PASSWORD: change-me-locally
+      MEDIA_STORAGE_ENDPOINT: http://minio:9000
+      MEDIA_STORAGE_ACCESS_KEY: minioadmin
+      MEDIA_STORAGE_SECRET_KEY: minioadmin
+      MEDIA_STORAGE_BUCKET: media
+      MEDIA_WORKSPACE: /tmp/streaming-media-worker
+      MEDIA_WORKER_ID: local-media-worker
+      MEDIA_MAX_CONCURRENT_JOBS: 2
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+
+  e2e:
+    profiles: ["e2e"]
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/e2e.Dockerfile
+    environment:
+      API_BASE_URL: http://api-gateway:8080/v1
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-}
+      CONTENT_ID: ${CONTENT_ID:-}
+      FIXTURE_PATH: /workspace/infrastructure/e2e/fixtures/golden.mp4
+      GENERATE_FIXTURE: "true"
+      E2E_RESULT_PATH: /workspace/certification/golden-path.json
+      MAX_PROCESSING_SECONDS: ${MAX_PROCESSING_SECONDS:-}
+    volumes:
+      - ../..:/workspace
+    depends_on:
+      api-gateway:
+        condition: service_started
+      media-worker:
+        condition: service_started
+      minio-init:
+        condition: service_completed_successfully
+
+  minio-init:
+    profiles: ["e2e"]
+    image: minio/mc:RELEASE.2025-02-28T09-55-16Z
+    depends_on:
+      minio:
+        condition: service_started
+    entrypoint: ["/bin/sh", "-c"]
+    command: >-
+      until mc alias set local http://minio:9000 minioadmin minioadmin; do sleep 1; done;
+      mc mb --ignore-existing local/media
+
+  minio:
+    image: minio/minio:RELEASE.2025-02-28T09-55-16Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - streaming-minio:/data
+
+volumes:
+  streaming-postgres:
+  streaming-minio:

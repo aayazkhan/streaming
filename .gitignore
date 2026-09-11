@@ -1,0 +1,33 @@
+# Gradle / Kotlin
+.gradle/
+.kotlin/
+build/
+**/build/
+*.hprof
+local.properties
+
+# Node / JS
+node_modules/
+**/node_modules/
+dist/
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# Xcode / iOS
+apps/iosApp/build_output/
+apps/iosApp/StreamingIOS.xcodeproj/project.xcworkspace/xcuserdata/
+apps/iosApp/StreamingIOS.xcodeproj/xcuserdata/
+*.xcuserstate
+DerivedData/
+shared/iosKit/build/
+
+# OS / editor
+.DS_Store
+.idea/
+*.iml
+.vscode/
+
+# Claude Code session artifacts
+.claude/.cc-writes

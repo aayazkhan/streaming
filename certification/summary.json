@@ -1,0 +1,210 @@
+{
+  "phase": 12,
+  "generatedAt": "2026-08-23T10:10:29Z",
+  "overallStatus": "NO-GO",
+  "executionStatus": "INCOMPLETE",
+  "platformStatus": "CERTIFICATION_PENDING",
+  "productionReady": false,
+  "gates": [
+    {
+      "gate": "repository",
+      "status": "PASS",
+      "hardGate": true,
+      "artifact": "repository.json",
+      "startedAt": "2026-08-23T10:10:26Z",
+      "completedAt": "2026-08-23T10:10:29Z",
+      "durationSeconds": 3,
+      "environment": "production-certification",
+      "testCount": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "artifacts": [
+        "logs/repository.log"
+      ],
+      "failureReason": null,
+      "reason": "Gradle repository tests passed",
+      "evidence": "logs/repository.log"
+    },
+    {
+      "gate": "docker",
+      "status": "NOT_EXECUTED",
+      "hardGate": true,
+      "artifact": "docker.json",
+      "startedAt": "2026-08-23T10:10:29Z",
+      "completedAt": "2026-08-23T10:10:29Z",
+      "durationSeconds": 0,
+      "environment": "production-certification",
+      "testCount": 0,
+      "passed": 0,
+      "failed": 0,
+      "skipped": 1,
+      "artifacts": [
+        "logs/docker-smoke.log"
+      ],
+      "failureReason": "Docker Compose is unavailable in this environment",
+      "reason": "Docker Compose is unavailable in this environment",
+      "evidence": "logs/docker-smoke.log"
+    },
+    {
+      "gate": "golden_path",
+      "status": "NOT_EXECUTED",
+      "hardGate": true,
+      "artifact": "golden-path.json",
+      "startedAt": "2026-08-23T10:10:29Z",
+      "completedAt": "2026-08-23T10:10:29Z",
+      "durationSeconds": 0,
+      "environment": "production-certification",
+      "testCount": 0,
+      "passed": 0,
+      "failed": 0,
+      "skipped": 1,
+      "artifacts": [
+        "logs/golden-path.log"
+      ],
+      "failureReason": "Golden path requires a passing Docker gate",
+      "reason": "Golden path requires a passing Docker gate",
+      "evidence": "logs/golden-path.log"
+    },
+    {
+      "gate": "worker_recovery",
+      "status": "NOT_EXECUTED",
+      "hardGate": true,
+      "artifact": "worker-metrics.json",
+      "startedAt": "2026-08-23T10:10:29Z",
+      "completedAt": "2026-08-23T10:10:29Z",
+      "durationSeconds": 0,
+      "environment": "production-certification",
+      "testCount": 0,
+      "passed": 0,
+      "failed": 0,
+      "skipped": 1,
+      "artifacts": [
+        "logs/worker_recovery.log"
+      ],
+      "failureReason": "No certification command or evidence artifact was supplied",
+      "reason": "No certification command or evidence artifact was supplied",
+      "evidence": "logs/worker_recovery.log"
+    },
+    {
+      "gate": "cdn",
+      "status": "NOT_EXECUTED",
+      "hardGate": true,
+      "artifact": "cdn-results.json",
+      "startedAt": "2026-08-23T10:10:29Z",
+      "completedAt": "2026-08-23T10:10:29Z",
+      "durationSeconds": 0,
+      "environment": "production-certification",
+      "testCount": 0,
+      "passed": 0,
+      "failed": 0,
+      "skipped": 1,
+      "artifacts": [
+        "logs/cdn.log"
+      ],
+      "failureReason": "CDN_MANIFEST_URL, CDN_SEGMENT_URL, and VALID_TOKEN are required",
+      "reason": "CDN_MANIFEST_URL, CDN_SEGMENT_URL, and VALID_TOKEN are required",
+      "evidence": "logs/cdn.log"
+    },
+    {
+      "gate": "drm",
+      "status": "NOT_EXECUTED",
+      "hardGate": true,
+      "artifact": "drm-results.json",
+      "startedAt": "2026-08-23T10:10:29Z",
+      "completedAt": "2026-08-23T10:10:29Z",
+      "durationSeconds": 0,
+      "environment": "production-certification",
+      "testCount": 0,
+      "passed": 0,
+      "failed": 0,
+      "skipped": 1,
+      "artifacts": [
+        "logs/drm.log"
+      ],
+      "failureReason": "No certification command or evidence artifact was supplied",
+      "reason": "No certification command or evidence artifact was supplied",
+      "evidence": "logs/drm.log"
+    },
+    {
+      "gate": "native_playback",
+      "status": "NOT_EXECUTED",
+      "hardGate": true,
+      "artifact": "playback-results.json",
+      "startedAt": "2026-08-23T10:10:29Z",
+      "completedAt": "2026-08-23T10:10:29Z",
+      "durationSeconds": 0,
+      "environment": "production-certification",
+      "testCount": 0,
+      "passed": 0,
+      "failed": 0,
+      "skipped": 1,
+      "artifacts": [
+        "logs/native_playback.log"
+      ],
+      "failureReason": "No certification command or evidence artifact was supplied",
+      "reason": "No certification command or evidence artifact was supplied",
+      "evidence": "logs/native_playback.log"
+    },
+    {
+      "gate": "offline",
+      "status": "NOT_EXECUTED",
+      "hardGate": true,
+      "artifact": "offline-results.json",
+      "startedAt": "2026-08-23T10:10:29Z",
+      "completedAt": "2026-08-23T10:10:29Z",
+      "durationSeconds": 0,
+      "environment": "production-certification",
+      "testCount": 0,
+      "passed": 0,
+      "failed": 0,
+      "skipped": 1,
+      "artifacts": [
+        "logs/offline.log"
+      ],
+      "failureReason": "No certification command or evidence artifact was supplied",
+      "reason": "No certification command or evidence artifact was supplied",
+      "evidence": "logs/offline.log"
+    },
+    {
+      "gate": "load",
+      "status": "NOT_EXECUTED",
+      "hardGate": true,
+      "artifact": "load-results.json",
+      "startedAt": "2026-08-23T10:10:29Z",
+      "completedAt": "2026-08-23T10:10:29Z",
+      "durationSeconds": 0,
+      "environment": "production-certification",
+      "testCount": 0,
+      "passed": 0,
+      "failed": 0,
+      "skipped": 1,
+      "artifacts": [
+        "logs/load.log"
+      ],
+      "failureReason": "No certification command or evidence artifact was supplied",
+      "reason": "No certification command or evidence artifact was supplied",
+      "evidence": "logs/load.log"
+    },
+    {
+      "gate": "security",
+      "status": "NOT_EXECUTED",
+      "hardGate": true,
+      "artifact": "security-results.json",
+      "startedAt": "2026-08-23T10:10:29Z",
+      "completedAt": "2026-08-23T10:10:29Z",
+      "durationSeconds": 0,
+      "environment": "production-certification",
+      "testCount": 0,
+      "passed": 0,
+      "failed": 0,
+      "skipped": 1,
+      "artifacts": [
+        "logs/security.log"
+      ],
+      "failureReason": "No certification command or evidence artifact was supplied",
+      "reason": "No certification command or evidence artifact was supplied",
+      "evidence": "logs/security.log"
+    }
+  ]
+}

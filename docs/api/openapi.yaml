@@ -1,0 +1,786 @@
+openapi: 3.1.0
+info:
+  title: Streaming Platform API
+  version: 0.1.0
+  description: Phase 1 identity and profile foundation.
+servers:
+  - url: http://localhost:8080
+paths:
+  /health:
+    get:
+      operationId: health
+      responses:
+        '200': { description: Process is alive. }
+  /ready:
+    get:
+      operationId: readiness
+      responses:
+        '200': { description: Database is ready. }
+        '503': { description: Database is unavailable. }
+  /v1/auth/register:
+    post:
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterCommand' }
+      responses:
+        '201': { $ref: '#/components/responses/AuthenticationResponse' }
+        '400': { $ref: '#/components/responses/ApiError' }
+        '409': { $ref: '#/components/responses/ApiError' }
+  /v1/auth/login:
+    post:
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginCommand' }
+      responses:
+        '200': { $ref: '#/components/responses/AuthenticationResponse' }
+        '401': { $ref: '#/components/responses/ApiError' }
+  /v1/auth/refresh:
+    post:
+      operationId: refresh
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RefreshRequest' }
+      responses:
+        '200':
+          description: Rotated access and refresh tokens.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TokenPair' }
+        '401': { $ref: '#/components/responses/ApiError' }
+  /v1/auth/logout:
+    post:
+      operationId: logout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LogoutRequest' }
+      responses:
+        '204': { description: Refresh token revoked. }
+  /v1/profiles:
+    get:
+      operationId: listProfiles
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Profiles owned by the authenticated user.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Profile' }
+    post:
+      operationId: createProfile
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateProfileCommand' }
+      responses:
+        '201':
+          description: Created profile.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Profile' }
+  /v1/profiles/{profileId}:
+    parameters:
+      - name: profileId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    put:
+      operationId: updateProfile
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateProfileCommand' }
+      responses:
+        '200':
+          description: Updated profile.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Profile' }
+    delete:
+      operationId: deleteProfile
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Deleted profile. }
+  /home:
+    get:
+      operationId: getHome
+      responses:
+        '200':
+          description: Catalog discovery sections.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HomeFeed' }
+  /content:
+    get:
+      operationId: listContent
+      parameters:
+        - { name: type, in: query, schema: { type: string } }
+        - { name: genre, in: query, schema: { type: string } }
+        - { name: releaseYear, in: query, schema: { type: integer } }
+        - { name: cursor, in: query, schema: { type: string } }
+        - { name: limit, in: query, schema: { type: integer, maximum: 50, default: 20 } }
+      responses:
+        '200':
+          description: Cursor-paginated published catalog.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ContentPage' }
+  /content/{contentId}:
+    get:
+      operationId: getContent
+      parameters:
+        - { name: contentId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Content detail with tracks and children.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ContentDetail' }
+  /content/{contentId}/similar:
+    get:
+      operationId: getSimilarContent
+      parameters:
+        - { name: contentId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Similar published content.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/ContentSummary' } }
+  /search:
+    get:
+      operationId: searchContent
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string, minLength: 2 } }
+        - { name: type, in: query, schema: { type: string } }
+        - { name: genre, in: query, schema: { type: string } }
+        - { name: releaseYear, in: query, schema: { type: integer } }
+        - { name: cursor, in: query, schema: { type: string } }
+      responses:
+        '200':
+          description: Full-text search result.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SearchResult' }
+  /search/autocomplete:
+    get:
+      operationId: autocompleteSearch
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string, minLength: 2 } }
+      responses:
+        '200':
+          description: Autocomplete suggestions.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/AutocompleteSuggestion' } }
+  /search/history:
+    get:
+      operationId: searchHistory
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: The authenticated user's search history.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/SearchHistoryEntry' } }
+  /playback/sessions:
+    post:
+      operationId: startPlayback
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/StartPlaybackCommand' }
+      responses:
+        '200':
+          description: Short-lived CDN playback grant.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlaybackGrant' }
+        '403': { $ref: '#/components/responses/ApiError' }
+        '409': { $ref: '#/components/responses/ApiError' }
+  /playback/sessions/{sessionId}/position:
+    patch:
+      operationId: updatePlaybackPosition
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: sessionId, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdatePositionCommand' }
+      responses:
+        '200':
+          description: Persisted playback position.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlaybackPosition' }
+  /continue-watching:
+    get:
+      operationId: continueWatching
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Incomplete playback positions for the user/profile.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/ContinueWatchingItem' } }
+  /watchlist:
+    get:
+      operationId: listWatchlist
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Cursor-paginated watchlist.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WatchlistPage' }
+  /watchlist/{contentId}:
+    put:
+      operationId: addToWatchlist
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: contentId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Watchlist entry.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WatchlistEntry' }
+    delete:
+      operationId: removeFromWatchlist
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: contentId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '204': { description: Removed. }
+  /v1/media/uploads:
+    post:
+      operationId: createMediaUpload
+      security: [{ bearerAuth: [] }]
+      description: Creates an admin-only upload record and a short-lived presigned PUT grant. Media bytes bypass the API gateway.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateMediaUploadRequest' }
+      responses:
+        '200':
+          description: Presigned object-storage upload grant.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MediaUploadGrant' }
+        '403': { $ref: '#/components/responses/ApiError' }
+  /v1/media/uploads/{uploadId}/complete:
+    post:
+      operationId: completeMediaUpload
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: uploadId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Verified upload queued for media processing.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CompletedMediaUpload' }
+  /v1/media/uploads/multipart:
+    post:
+      operationId: startMultipartMediaUpload
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/StartMultipartUploadRequest' }
+      responses:
+        '200':
+          description: Multipart upload session.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MultipartUploadGrant' }
+  /v1/media/uploads/{uploadId}/parts/{partNumber}:
+    post:
+      operationId: createMultipartPartGrant
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: uploadId, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: partNumber, in: path, required: true, schema: { type: integer, minimum: 1, maximum: 10000 } }
+        - { name: X-Upload-Part-Checksum-Sha256, in: header, required: false, description: Base64 SHA-256 checksum that is signed into the part upload grant, schema: { type: string, pattern: '^[A-Za-z0-9+/]{43}=$' } }
+      responses:
+        '200':
+          description: Presigned upload URL for one part.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MultipartPartGrant' }
+  /v1/media/uploads/{uploadId}/complete-multipart:
+    post:
+      operationId: completeMultipartMediaUpload
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: uploadId, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CompleteMultipartUploadRequest' }
+      responses:
+        '200':
+          description: Completed object verified and queued.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CompletedMultipartUpload' }
+  /v1/media/uploads/{uploadId}/abort:
+    post:
+      operationId: abortMultipartMediaUpload
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: uploadId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Aborted upload.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MediaUpload' }
+  /v1/media/jobs/{jobId}:
+    get:
+      operationId: getMediaJob
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: jobId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Media processing job status.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MediaJob' }
+  /v1/media/jobs/{jobId}/cancel:
+    post:
+      operationId: cancelMediaJob
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: jobId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Cancellation requested.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jobId: { type: string, format: uuid }
+                  cancelRequested: { type: boolean }
+  /v1/playback/grants/validate:
+    get:
+      operationId: validatePlaybackGrant
+      parameters:
+        - { name: token, in: query, required: false, schema: { type: string } }
+        - { name: X-Playback-Grant, in: header, required: false, schema: { type: string } }
+        - { name: resource, in: query, required: false, description: Requested manifest or segment key (required in combination with the grant), schema: { type: string } }
+        - { name: X-Playback-Resource, in: header, required: false, description: Requested manifest or segment key, schema: { type: string } }
+      responses:
+        '200':
+          description: Grant is cryptographically valid and its playback session is active.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlaybackGrantValidation' }
+        '401': { $ref: '#/components/responses/ApiError' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    ApiError:
+      description: Stable client-visible error.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiErrorResponse' }
+    AuthenticationResponse:
+      description: Authenticated user and session.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/AuthenticationResponse' }
+  schemas:
+    RegisterCommand:
+      type: object
+      required: [email, password, displayName, deviceId]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 12, format: password }
+        displayName: { type: string, minLength: 1, maxLength: 80 }
+        deviceId: { type: string, maxLength: 200 }
+    LoginCommand:
+      type: object
+      required: [email, password, deviceId]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, format: password }
+        deviceId: { type: string, maxLength: 200 }
+    RefreshRequest:
+      type: object
+      required: [refreshToken, deviceId]
+      properties:
+        refreshToken: { type: string }
+        deviceId: { type: string }
+    LogoutRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken: { type: string }
+    TokenPair:
+      type: object
+      required: [accessToken, refreshToken, accessTokenExpiresAt]
+      properties:
+        accessToken: { type: string }
+        refreshToken: { type: string }
+        accessTokenExpiresAt: { type: string, format: date-time }
+    AuthenticationResponse:
+      type: object
+      required: [user, session]
+      properties:
+        user: { $ref: '#/components/schemas/UserSummary' }
+        session: { $ref: '#/components/schemas/Session' }
+    UserSummary:
+      type: object
+      required: [id, email, displayName, emailVerified]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        displayName: { type: string }
+        emailVerified: { type: boolean }
+    Session:
+      type: object
+      required: [userId, deviceId, tokens]
+      properties:
+        userId: { type: string, format: uuid }
+        deviceId: { type: string }
+        tokens: { $ref: '#/components/schemas/TokenPair' }
+    Profile:
+      type: object
+      required: [id, userId, name, kind, language, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        name: { type: string }
+        kind: { type: string, enum: [STANDARD, KIDS] }
+        language: { type: string }
+        subtitleLanguage: { type: string, nullable: true }
+        avatarKey: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    CreateProfileCommand:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 40 }
+        kind: { type: string, enum: [STANDARD, KIDS], default: STANDARD }
+        language: { type: string, default: en }
+        subtitleLanguage: { type: string, nullable: true }
+        avatarKey: { type: string, nullable: true }
+    UpdateProfileCommand:
+      type: object
+      required: [name, language]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 40 }
+        language: { type: string }
+        subtitleLanguage: { type: string, nullable: true }
+        avatarKey: { type: string, nullable: true }
+    ContentSummary:
+      type: object
+      required: [id, type, title, accessTier, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        type: { type: string, enum: [MOVIE, SERIES, SEASON, EPISODE, TRAILER, SHORT] }
+        title: { type: string }
+        synopsis: { type: string, nullable: true }
+        posterUrl: { type: string, nullable: true }
+        backdropUrl: { type: string, nullable: true }
+        releaseYear: { type: integer, nullable: true }
+        durationSeconds: { type: integer, nullable: true }
+        accessTier: { type: string, enum: [FREE, PREMIUM] }
+        rating: { type: number, nullable: true }
+        createdAt: { type: string, format: date-time }
+    ContentPage:
+      type: object
+      required: [items, hasMore]
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/ContentSummary' } }
+        nextCursor: { type: string, nullable: true }
+        hasMore: { type: boolean }
+    ContentDetail:
+      type: object
+      required: [summary, genres, credits, audioTracks, subtitleTracks, children, playable]
+      properties:
+        summary: { $ref: '#/components/schemas/ContentSummary' }
+        genres: { type: array, items: { type: string } }
+        credits: { type: array, items: { $ref: '#/components/schemas/PersonCredit' } }
+        audioTracks: { type: array, items: { $ref: '#/components/schemas/AudioTrack' } }
+        subtitleTracks: { type: array, items: { $ref: '#/components/schemas/SubtitleTrack' } }
+        children: { type: array, items: { $ref: '#/components/schemas/ContentSummary' } }
+        playable: { type: boolean }
+    PersonCredit:
+      type: object
+      required: [name, role]
+      properties:
+        name: { type: string }
+        role: { type: string }
+        character: { type: string, nullable: true }
+    AudioTrack:
+      type: object
+      required: [language, label, isDefault]
+      properties:
+        language: { type: string }
+        label: { type: string }
+        isDefault: { type: boolean }
+    SubtitleTrack:
+      type: object
+      required: [language, label]
+      properties:
+        language: { type: string }
+        label: { type: string }
+        uri: { type: string, nullable: true }
+    HomeFeed:
+      type: object
+      required: [sections]
+      properties:
+        sections: { type: array, items: { $ref: '#/components/schemas/ContentSection' } }
+    ContentSection:
+      type: object
+      required: [key, title, items]
+      properties:
+        key: { type: string }
+        title: { type: string }
+        items: { type: array, items: { $ref: '#/components/schemas/ContentSummary' } }
+    SearchResult:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/ContentSummary' } }
+        nextCursor: { type: string, nullable: true }
+        total: { type: integer, format: int64, nullable: true }
+    AutocompleteSuggestion:
+      type: object
+      required: [text, contentId, type]
+      properties:
+        text: { type: string }
+        contentId: { type: string, format: uuid }
+        type: { type: string }
+    SearchHistoryEntry:
+      type: object
+      required: [query, searchedAt]
+      properties:
+        query: { type: string }
+        searchedAt: { type: string, format: date-time }
+    StartPlaybackCommand:
+      type: object
+      required: [contentId, profileId]
+      properties:
+        contentId: { type: string, format: uuid }
+        profileId: { type: string, format: uuid }
+    PlaybackGrant:
+      type: object
+      required: [session, playbackToken, expiresAt]
+      properties:
+        session: { $ref: '#/components/schemas/PlaybackSession' }
+        hlsUrl: { type: string, nullable: true }
+        dashUrl: { type: string, nullable: true }
+        playbackToken: { type: string }
+        expiresAt: { type: string, format: date-time }
+    PlaybackSession:
+      type: object
+      required: [id, userId, profileId, contentId, startedAt, expiresAt]
+      properties:
+        id: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        profileId: { type: string, format: uuid }
+        contentId: { type: string, format: uuid }
+        startedAt: { type: string, format: date-time }
+        expiresAt: { type: string, format: date-time }
+    UpdatePositionCommand:
+      type: object
+      required: [positionSeconds]
+      properties:
+        positionSeconds: { type: integer, format: int64, minimum: 0 }
+        durationSeconds: { type: integer, format: int64, nullable: true }
+        completed: { type: boolean, default: false }
+    PlaybackPosition:
+      type: object
+      required: [sessionId, contentId, positionSeconds, completed, updatedAt]
+      properties:
+        sessionId: { type: string, format: uuid }
+        contentId: { type: string, format: uuid }
+        positionSeconds: { type: integer, format: int64 }
+        durationSeconds: { type: integer, format: int64, nullable: true }
+        completed: { type: boolean }
+        updatedAt: { type: string, format: date-time }
+    ContinueWatchingItem:
+      type: object
+      required: [content, position]
+      properties:
+        content: { $ref: '#/components/schemas/ContentSummary' }
+        position: { $ref: '#/components/schemas/PlaybackPosition' }
+    WatchlistEntry:
+      type: object
+      required: [content, addedAt]
+      properties:
+        content: { $ref: '#/components/schemas/ContentSummary' }
+        addedAt: { type: string, format: date-time }
+    WatchlistPage:
+      type: object
+      required: [items, hasMore]
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/WatchlistEntry' } }
+        nextCursor: { type: string, nullable: true }
+        hasMore: { type: boolean }
+    CreateMediaUploadRequest:
+      type: object
+      required: [contentId, fileName, contentType, sizeBytes]
+      properties:
+        contentId: { type: string, format: uuid }
+        fileName: { type: string, maxLength: 255 }
+        contentType: { type: string, pattern: '^video/' }
+        sizeBytes: { type: integer, format: int64, minimum: 1 }
+        checksumSha256: { type: string, minLength: 64, maxLength: 64, nullable: true }
+    MediaUploadGrant:
+      type: object
+      required: [upload, grant]
+      properties:
+        upload: { $ref: '#/components/schemas/MediaUpload' }
+        grant: { $ref: '#/components/schemas/PresignedObjectGrant' }
+    MediaUpload:
+      type: object
+      required: [id, contentId, objectKey, fileName, contentType, expectedSizeBytes, status, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        contentId: { type: string, format: uuid }
+        objectKey: { type: string }
+        fileName: { type: string }
+        contentType: { type: string }
+        expectedSizeBytes: { type: integer, format: int64 }
+        checksumSha256: { type: string, nullable: true }
+        status: { type: string, enum: [UPLOADING, PROCESSING, READY, FAILED] }
+        createdAt: { type: string, format: date-time }
+        completedAt: { type: string, format: date-time, nullable: true }
+    PresignedObjectGrant:
+      type: object
+      required: [key, method, url, expiresAt]
+      properties:
+        key: { type: string }
+        method: { type: string, enum: [PUT, GET] }
+        url: { type: string, format: uri }
+        expiresAt: { type: string, format: date-time }
+        requiredHeaders: { type: object, additionalProperties: { type: string } }
+    CompletedMediaUpload:
+      type: object
+      required: [upload, objectMetadata, processingQueued]
+      properties:
+        upload: { $ref: '#/components/schemas/MediaUpload' }
+        objectMetadata: { $ref: '#/components/schemas/StorageObjectMetadata' }
+        processingQueued: { type: boolean }
+    StartMultipartUploadRequest:
+      type: object
+      required: [base]
+      properties:
+        base: { $ref: '#/components/schemas/CreateMediaUploadRequest' }
+        partSizeBytes: { type: integer, format: int64, minimum: 5242880 }
+    MultipartUploadGrant:
+      type: object
+      required: [upload, session]
+      properties:
+        upload: { $ref: '#/components/schemas/MediaUpload' }
+        session: { $ref: '#/components/schemas/MultipartUploadSession' }
+    MultipartUploadSession:
+      type: object
+      required: [uploadId, key, partSizeBytes, expiresAt]
+      properties:
+        uploadId: { type: string }
+        key: { type: string }
+        partSizeBytes: { type: integer, format: int64 }
+        expiresAt: { type: string, format: date-time }
+    MultipartPartGrant:
+      type: object
+      required: [partNumber, grant]
+      properties:
+        partNumber: { type: integer }
+        grant: { $ref: '#/components/schemas/PresignedObjectGrant' }
+    CompletedUploadPart:
+      type: object
+      required: [partNumber, etag]
+      properties:
+        partNumber: { type: integer, minimum: 1, maximum: 10000 }
+        etag: { type: string }
+        checksumSha256: { type: string, nullable: true }
+    CompleteMultipartUploadRequest:
+      type: object
+      required: [parts]
+      properties:
+        parts: { type: array, minItems: 1, items: { $ref: '#/components/schemas/CompletedUploadPart' } }
+    CompletedMultipartUpload:
+      type: object
+      required: [upload, objectMetadata, processingQueued]
+      properties:
+        upload: { $ref: '#/components/schemas/MediaUpload' }
+        objectMetadata: { $ref: '#/components/schemas/StorageObjectMetadata' }
+        processingQueued: { type: boolean }
+    MediaJob:
+      type: object
+      required: [id, contentId, sourceKey, state, attempts, maxAttempts, progressPercent, cancelRequested, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        contentId: { type: string, format: uuid }
+        sourceKey: { type: string }
+        state: { type: string, enum: [ACCEPTED, UPLOADING, TRANSCODING, PACKAGING, SUBTITLES, THUMBNAILS, READY, FAILED, CANCELLED] }
+        attempts: { type: integer }
+        maxAttempts: { type: integer }
+        progressPercent: { type: integer, minimum: 0, maximum: 100 }
+        cancelRequested: { type: boolean }
+        workerId: { type: string, nullable: true }
+        heartbeatAt: { type: string, format: date-time, nullable: true }
+        nextAttemptAt: { type: string, format: date-time, nullable: true }
+        failureCode: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    StorageObjectMetadata:
+      type: object
+      required: [key, sizeBytes]
+      properties:
+        key: { type: string }
+        sizeBytes: { type: integer, format: int64 }
+        contentType: { type: string, nullable: true }
+        etag: { type: string, nullable: true }
+    PlaybackGrantValidation:
+      type: object
+      required: [valid, sessionId, contentId, expiresAt]
+      properties:
+        valid: { type: boolean }
+        sessionId: { type: string, format: uuid }
+        contentId: { type: string, format: uuid }
+        expiresAt: { type: string, format: date-time }
+    ApiErrorResponse:
+      type: object
+      required: [code, message, correlationId]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        correlationId: { type: string }
+        details:
+          type: object
+          additionalProperties: { type: string }

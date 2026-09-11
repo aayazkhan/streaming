@@ -1,0 +1,19 @@
+{
+  "gate": "repository",
+  "status": "PASS",
+  "hardGate": true,
+  "startedAt": "2026-08-23T10:10:26Z",
+  "completedAt": "2026-08-23T10:10:29Z",
+  "durationSeconds": 3,
+  "environment": "production-certification",
+  "testCount": 1,
+  "passed": 1,
+  "failed": 0,
+  "skipped": 0,
+  "artifacts": [
+    "logs/repository.log"
+  ],
+  "failureReason": null,
+  "reason": "Gradle repository tests passed",
+  "evidence": "logs/repository.log"
+}

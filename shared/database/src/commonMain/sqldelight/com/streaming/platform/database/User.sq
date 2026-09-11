@@ -1,0 +1,19 @@
+CREATE TABLE users (
+    id TEXT NOT NULL PRIMARY KEY,
+    email TEXT NOT NULL UNIQUE,
+    display_name TEXT NOT NULL,
+    password_hash TEXT NOT NULL,
+    email_verified INTEGER AS kotlin.Boolean NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+selectUserById:
+SELECT * FROM users WHERE id = ?;
+
+selectUserByEmail:
+SELECT * FROM users WHERE email = ?;
+
+insertUser:
+INSERT INTO users(id, email, display_name, password_hash, email_verified, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?);

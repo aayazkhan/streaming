@@ -1,0 +1,33 @@
+name: streaming-certification
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  certification:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+      - name: Run certification runner
+        env:
+          CERTIFICATION_MODE: strict
+          CERTIFICATION_FAIL_ON_PENDING: 'true'
+          STOP_COMPOSE: 'true'
+        run: ./infrastructure/e2e/run-certification.sh
+      - name: Upload certification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: streaming-certification-${{ github.run_id }}
+          path: certification/
+          if-no-files-found: error

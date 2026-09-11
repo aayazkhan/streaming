@@ -1,0 +1,19 @@
+{
+  "gate": "cdn",
+  "status": "NOT_EXECUTED",
+  "hardGate": true,
+  "startedAt": "2026-08-23T10:10:29Z",
+  "completedAt": "2026-08-23T10:10:29Z",
+  "durationSeconds": 0,
+  "environment": "production-certification",
+  "testCount": 0,
+  "passed": 0,
+  "failed": 0,
+  "skipped": 1,
+  "artifacts": [
+    "logs/cdn.log"
+  ],
+  "failureReason": "CDN_MANIFEST_URL, CDN_SEGMENT_URL, and VALID_TOKEN are required",
+  "reason": "CDN_MANIFEST_URL, CDN_SEGMENT_URL, and VALID_TOKEN are required",
+  "evidence": "logs/cdn.log"
+}

@@ -1,0 +1,19 @@
+{
+  "gate": "native_playback",
+  "status": "NOT_EXECUTED",
+  "hardGate": true,
+  "startedAt": "2026-08-23T10:10:29Z",
+  "completedAt": "2026-08-23T10:10:29Z",
+  "durationSeconds": 0,
+  "environment": "production-certification",
+  "testCount": 0,
+  "passed": 0,
+  "failed": 0,
+  "skipped": 1,
+  "artifacts": [
+    "logs/native_playback.log"
+  ],
+  "failureReason": "No certification command or evidence artifact was supplied",
+  "reason": "No certification command or evidence artifact was supplied",
+  "evidence": "logs/native_playback.log"
+}

@@ -1,0 +1,19 @@
+{
+  "gate": "docker",
+  "status": "NOT_EXECUTED",
+  "hardGate": true,
+  "startedAt": "2026-08-23T10:10:29Z",
+  "completedAt": "2026-08-23T10:10:29Z",
+  "durationSeconds": 0,
+  "environment": "production-certification",
+  "testCount": 0,
+  "passed": 0,
+  "failed": 0,
+  "skipped": 1,
+  "artifacts": [
+    "logs/docker-smoke.log"
+  ],
+  "failureReason": "Docker Compose is unavailable in this environment",
+  "reason": "Docker Compose is unavailable in this environment",
+  "evidence": "logs/docker-smoke.log"
+}
