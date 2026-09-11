@@ -22,6 +22,8 @@ streaming/            Reserved for ingestion, packaging, DRM, and media workers
 
 The API surface is documented in [docs/api/openapi.yaml](docs/api/openapi.yaml). The Android, iOS, web, and admin directories contain integration boundaries; platform players remain native and DRM is intentionally not faked.
 
+Looking to contribute? See [CONTRIBUTING.md](CONTRIBUTING.md) for concrete, self-contained open work items (test coverage gaps, CI improvements).
+
 ## Phase 2 VOD slice
 
 The current branch contains the Phase 2 backend/API slice: catalog hierarchy and discovery, PostgreSQL/OpenSearch search routing, signed CDN playback grants with session/position/telemetry persistence, continue watching, watchlist, and a media-job orchestration boundary. Phase 3 adds presigned S3-compatible uploads, upload lifecycle validation, FFmpeg providers, grant validation, and native adapter scaffolds. See [docs/architecture/phase-3-media.md](docs/architecture/phase-3-media.md) and the [playback capability matrix](docs/architecture/playback-capability-matrix.md).
