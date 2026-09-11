@@ -2,6 +2,20 @@
 
 Kotlin Multiplatform video platform delivered by roadmap phase. The repository now includes the Phase 1 foundation, Phase 2 VOD control plane, and the Phase 3 storage/media/native-playback seams.
 
+## Documentation map
+
+| Doc | Audience | Covers |
+|---|---|---|
+| [docs/overview.md](docs/overview.md) | Non-technical | What the product does, who it's for, what's real vs. not yet |
+| [docs/technical-overview.md](docs/technical-overview.md) | Engineers | Stack, repo layout, service responsibilities |
+| [docs/functional-requirements.md](docs/functional-requirements.md) | Product/engineering | Feature-by-feature spec traced to actual routes/screens |
+| [docs/non-functional-requirements.md](docs/non-functional-requirements.md) | Engineering/ops | Security, observability, reliability, performance, compliance status |
+| [docs/architecture](docs/architecture/decisions.md) | Engineers | Phase-by-phase design decisions and rationale |
+| [docs/api/openapi.yaml](docs/api/openapi.yaml) | Engineers | Full API contract |
+| [docs/glossary.md](docs/glossary.md) | Anyone | Terminology used throughout the docs |
+| [docs/roadmap.md](docs/roadmap.md) | Anyone | Phase status: implemented / pending / planned |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Contributors | Concrete open work items |
+
 ## Repository layout
 
 ```text
